@@ -45,14 +45,14 @@ describe("Dispatcher", function () {
     expect(await dispatcher.getShareHolderCount()).to.equal(2);
 
     await dispatcher.removeShareHolder(addr1);
-    expect(await dispatcher.getShareHolderCount()).to.equal(1);
+    expect(await dispatcher.getShareHolderShares(addr1)).to.equal(0);
 
     // Remove unadded address
     await dispatcher.removeShareHolder(addr3);
-    expect(await dispatcher.getShareHolderCount()).to.equal(1);
+    expect(await dispatcher.getShareHolderCount()).to.equal(2);
   });
 
-  it("Should get total dShare", async function () {
+  it("Should get total shares", async function () {
     await dispatcher.addShareHolder(addr1, 50000)
     await dispatcher.addShareHolder(addr2, 50000)
 
@@ -62,9 +62,13 @@ describe("Dispatcher", function () {
 
     expect(await dispatcher.getShareTotal()).to.equal(50000);
 
-    // Add already added address, but edit dShareage
+    // Add already added address, but edit shares
     await dispatcher.addShareHolder(addr2, 30000);
     expect(await dispatcher.getShareTotal()).to.equal(30000);
+
+    // Readd shareholder
+    await dispatcher.addShareHolder(addr1, 50000);
+    expect(await dispatcher.getShareTotal()).to.equal(80000);
   });
 
   it("Should get recipient shares", async function () {
@@ -77,7 +81,7 @@ describe("Dispatcher", function () {
 
     expect(await dispatcher.getShareHolderShares(addr1)).to.equal(0);
 
-    // Add already added address, but edit dShareage
+    // Add already added address, but edit shares
     await dispatcher.addShareHolder(addr2, 30000);
     expect(await dispatcher.getShareHolderShares(addr2)).to.equal(30000);
   });

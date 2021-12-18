@@ -1,6 +1,6 @@
 # Dispatcher
 
-This project is a study case to learn Solidity, OpenZepellin, Hardhat and other ethereum developer stuff.
+This project is a study case to learn Solidity, OpenZeppelin, Hardhat and other ethereum developer stuff.
 
 ## Documentation
 
@@ -18,3 +18,6 @@ Example :
   // and 30% to the second one
   dispatcher.dispatchBalance();
 ```
+
+## Note
+I have found that this contract is very similar to [PaymentSplitter](https://docs.openzeppelin.com/contracts/4.x/api/finance#PaymentSplitter) from OpenZeppelin 😇 , except it doesn't handle (yet) ERC-20 tokens.

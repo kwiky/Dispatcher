@@ -4,6 +4,7 @@ pragma solidity ^0.8.0;
 
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/utils/math/SafeMath.sol";
+import "@openzeppelin/contracts/utils/Address.sol";
 
 contract Dispatcher is Ownable {
 
@@ -13,7 +14,6 @@ contract Dispatcher is Ownable {
   using SafeMath for uint256;
 
   address[] public shareHolders;
-  uint256 public shareHoldersCount = 0;
   mapping(address => bool) public allShareHolders;
   mapping(address => uint256) public shareHolderShares;
 
@@ -36,11 +36,10 @@ contract Dispatcher is Ownable {
    */
   function addShareHolder(address shareHolder, uint256 shares) public onlyOwner {
     if (!allShareHolders[shareHolder]) {
-      shareHoldersCount++;
       shareHolders.push(shareHolder);
+      allShareHolders[shareHolder] = true;
     }
-    shareHolderShares[shareHolder] =shares;
-    allShareHolders[shareHolder] = true;
+    shareHolderShares[shareHolder] = shares;
   }
 
   /**
@@ -48,10 +47,7 @@ contract Dispatcher is Ownable {
    * @param shareHolder The address of the share holder to delete
    */
   function removeShareHolder(address shareHolder) public onlyOwner {
-    if (allShareHolders[shareHolder]) {
-      shareHoldersCount--;
-    }
-    allShareHolders[shareHolder] = false;
+    shareHolderShares[shareHolder] = 0;
   }
 
   /**
@@ -59,7 +55,7 @@ contract Dispatcher is Ownable {
    * @return The number of share holders
    */
   function getShareHolderCount() public view returns (uint256) {
-    return shareHoldersCount;
+    return shareHolders.length;
   }
 
   /**
@@ -70,9 +66,7 @@ contract Dispatcher is Ownable {
     uint256 sharesTotal = 0;
     for (uint256 i = 0; i < shareHolders.length; i++) {
         address holder = shareHolders[i];
-        if (allShareHolders[holder]) {
-          sharesTotal += shareHolderShares[holder];
-        }
+        sharesTotal += shareHolderShares[holder];
     }
     return sharesTotal;
   }
@@ -83,11 +77,7 @@ contract Dispatcher is Ownable {
    * @return The number of shares of this shareHolder
    */
   function getShareHolderShares(address shareholder) public view returns (uint256) {
-    if (allShareHolders[shareholder]) {
-      return shareHolderShares[shareholder];
-    } else {
-      return 0;
-    }
+    return shareHolderShares[shareholder];
   }
 
   /**
@@ -98,10 +88,8 @@ contract Dispatcher is Ownable {
     uint256 balance = getBalance();
     for (uint256 i = 0; i < shareHolders.length; i++) {
         address holder = shareHolders[i];
-        if (allShareHolders[holder]) {
-          uint256 amount = balance.mul(shareHolderShares[holder]).div(sum);
-          _withdraw(shareHolders[i], amount);
-        }
+        uint256 amount = balance.mul(shareHolderShares[holder]).div(sum);
+        _withdraw(payable(shareHolders[i]), amount);
     }
   }
 
@@ -110,9 +98,8 @@ contract Dispatcher is Ownable {
    * @param recipient The address of recipient
    * @param amount Amount of ether to send
    */
-  function _withdraw(address recipient, uint256 amount) private {
-    (bool succeed,) = payable(recipient).call{value: amount}("");
-    require(succeed, "Failed to dispatch Ether");
+  function _withdraw(address payable recipient, uint256 amount) private {
+    Address.sendValue(recipient, amount);
     emit Transfer(address(this), recipient, amount);
   }
 }
